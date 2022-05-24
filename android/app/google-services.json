@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "356049800163",
+    "project_id": "workoutlogger-c22bd",
+    "storage_bucket": "workoutlogger-c22bd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356049800163:android:093ec9041dbe45c335eed6",
+        "android_client_info": {
+          "package_name": "com.example.workoutlogger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "356049800163-kdmc5mv0e7lgsrv7v45shtln2dklre72.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-9suy_vparnedfHyo9_ZeGoMuDe3CYVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "356049800163-kdmc5mv0e7lgsrv7v45shtln2dklre72.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
