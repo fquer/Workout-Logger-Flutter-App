@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:workoutlogger/pages/home.dart';
@@ -14,11 +15,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   var rememberValue = false;
-
+  String id = '';
   @override
   Widget build(BuildContext context) {
+    final email_controller = TextEditingController();
+    final password_controller = TextEditingController();
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Color(0xff2c274c),
       body: Container(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -28,9 +31,9 @@ class _LoginPageState extends State<LoginPage> {
             const Text(
               'Sign in',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 40,
-              ),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 40,
+                  color: Colors.white),
             ),
             const SizedBox(
               height: 60,
@@ -40,15 +43,35 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 children: [
                   TextFormField(
+                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    controller: email_controller,
                     validator: (value) => EmailValidator.validate(value!)
                         ? null
                         : "Please enter a valid email",
                     maxLines: 1,
                     decoration: InputDecoration(
                       hintText: 'Enter your email',
-                      prefixIcon: const Icon(Icons.email),
+                      hintStyle: TextStyle(color: Colors.white),
+                      prefixIcon: const Icon(
+                        Icons.email,
+                        color: Colors.white,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: Color(0xff4af699),
+                          width: 4.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
                       ),
                     ),
                   ),
@@ -56,6 +79,8 @@ class _LoginPageState extends State<LoginPage> {
                     height: 20,
                   ),
                   TextFormField(
+                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    controller: password_controller,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your password';
@@ -65,24 +90,50 @@ class _LoginPageState extends State<LoginPage> {
                     maxLines: 1,
                     obscureText: true,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon: const Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                      ),
                       hintText: 'Enter your password',
+                      hintStyle: TextStyle(color: Colors.white),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: Color(0xff4af699),
+                          width: 4.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(
+                          color: Colors.white,
+                          width: 2.0,
+                        ),
+                      ),
                     ),
                   ),
-                  CheckboxListTile(
-                    title: const Text("Remember me"),
-                    contentPadding: EdgeInsets.zero,
-                    value: rememberValue,
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (newValue) {
-                      setState(() {
-                        rememberValue = newValue!;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
+                  Theme(
+                    data: ThemeData(unselectedWidgetColor: Colors.white),
+                    child: CheckboxListTile(
+                      title: const Text(
+                        "Remember me",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      checkColor: Color(0xff4af699),
+                      selectedTileColor: Colors.white,
+                      contentPadding: EdgeInsets.zero,
+                      value: rememberValue,
+                      activeColor: Color(0xff2c274c),
+                      onChanged: (newValue) {
+                        setState(() {
+                          rememberValue = newValue!;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
                   ),
                   const SizedBox(
                     height: 20,
@@ -90,21 +141,38 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        print("Gris basarili");
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Home()),
-                        );
+                        FirebaseFirestore.instance
+                            .collection('Kullanicilar')
+                            .where('KullaniciEmail',
+                                isEqualTo: email_controller.text)
+                            .where('KullaniciSifre',
+                                isEqualTo: password_controller.text)
+                            .get()
+                            .then((QuerySnapshot querySnapshot) {
+                          if (querySnapshot.docs.isNotEmpty) {
+                            querySnapshot.docs.forEach((element) {
+                              print(element.id);
+                              id = element.id.toString();
+                            });
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Home(
+                                        id: id,
+                                      )),
+                            );
+                          }
+                        });
                       }
                     },
                     style: ElevatedButton.styleFrom(
+                      primary: Color.fromARGB(255, 64, 211, 133),
                       padding: const EdgeInsets.fromLTRB(40, 15, 40, 15),
                     ),
                     child: const Text(
                       'Sign in',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                   const SizedBox(
@@ -113,7 +181,10 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Not registered yet?'),
+                      const Text(
+                        'Not registered yet?',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushReplacement(
@@ -124,7 +195,12 @@ class _LoginPageState extends State<LoginPage> {
                                 maintainState: false),
                           );
                         },
-                        child: const Text('Create an account'),
+                        child: const Text(
+                          'Create an account',
+                          style: TextStyle(
+                            color: Color(0xff4af699),
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -9,8 +9,8 @@ import 'package:workoutlogger/pages/preferences.dart';
 import 'package:workoutlogger/pages/line_chart.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
+  Home({Key? key, required this.id}) : super(key: key);
+  final String id;
   @override
   State<Home> createState() => _Home();
 }
@@ -19,11 +19,6 @@ final growableList = <String>[];
 
 class _Home extends State<Home> {
   int _selectedIndex = 0;
-  static const List<Widget> _widgetOptions = <Widget>[
-    MyExercise(),
-    LineChartEx(),
-    MyCustomForm()
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -33,6 +28,16 @@ class _Home extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> _widgetOptions = <Widget>[
+      MyExercise(
+        id: widget.id,
+      ),
+      LineChartEx(),
+      MyCustomForm(
+        id: widget.id,
+      )
+    ];
+
     return Scaffold(
       backgroundColor: Color(0xff2c274c),
       appBar: AppBar(

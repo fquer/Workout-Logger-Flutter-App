@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class MyExercise extends StatefulWidget {
-  const MyExercise({Key? key}) : super(key: key);
+  const MyExercise({Key? key, required this.id}) : super(key: key);
+  final String id;
 
   @override
   State<MyExercise> createState() => _MyExerciseState();
@@ -31,8 +32,10 @@ class _MyExerciseState extends State<MyExercise> {
     final setController = TextEditingController();
     final tekrarController = TextEditingController();
     final kiloController = TextEditingController();
-    CollectionReference calisma =
-        FirebaseFirestore.instance.collection('Calisma');
+    CollectionReference calisma = FirebaseFirestore.instance
+        .collection('Kullanicilar')
+        .doc(widget.id)
+        .collection("Calisma");
     int _index = 0;
 
     return Scaffold(
