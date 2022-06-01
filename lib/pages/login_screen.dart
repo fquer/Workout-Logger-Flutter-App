@@ -16,10 +16,15 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   var rememberValue = false;
   String id = '';
+  bool control = true;
+  String errorMsg = '';
+  String? deneme = '';
+
   @override
   Widget build(BuildContext context) {
     final email_controller = TextEditingController();
     final password_controller = TextEditingController();
+    deneme = null;
     return Scaffold(
       backgroundColor: Color(0xff2c274c),
       body: Container(
@@ -82,8 +87,10 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                     controller: password_controller,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty || value.length < 6) {
                         return 'Please enter your password';
+                      } else if (control == false) {
+                        return "Inc";
                       }
                       return null;
                     },
@@ -138,8 +145,15 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(
                     height: 20,
                   ),
+                  Text(
+                    errorMsg,
+                    style: TextStyle(color: Colors.red, fontSize: 13),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         FirebaseFirestore.instance
                             .collection('Kullanicilar')
@@ -161,6 +175,10 @@ class _LoginPageState extends State<LoginPage> {
                                         id: id,
                                       )),
                             );
+                          } else {
+                            setState(() {
+                              errorMsg = "Incorrect email or password.";
+                            });
                           }
                         });
                       }

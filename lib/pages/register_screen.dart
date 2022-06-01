@@ -172,7 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                     controller: password_controller,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty || value.length < 6) {
                         return 'Please enter your password';
                       }
                       return null;
@@ -273,8 +273,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           'KullaniciEmail': email_controller.text,
                           'KullaniciSifre': password_controller.text,
                           'KullaniciDogumTarih': dateinput.text,
-                        }).then((value) => print('Calisma eklendi.'));
-                        print("Kayit basarili");
+                        }).then((value) => print('Kayit basarili.'));
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

@@ -12,7 +12,7 @@ class LineChartEx extends StatefulWidget {
   State<LineChartEx> createState() => LineChartExState();
 }
 
-String dropdownValue = 'OHP';
+String dropdownValue = 'Weight';
 TextEditingController firstdate = TextEditingController();
 TextEditingController endingdate = TextEditingController();
 
@@ -22,7 +22,7 @@ class LineChartExState extends State<LineChartEx> {
     return StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection("Hareketler").snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          late List<String> currencyItems = [];
+          late List<String> currencyItems = ['Weight'];
           if (snapshot.data != null) {
             for (int i = 0; i < snapshot.data!.docs.length; i++) {
               DocumentSnapshot snap = snapshot.data!.docs[i];
@@ -104,6 +104,8 @@ class LineChartExState extends State<LineChartEx> {
                         if (pickedDate != null) {
                           print(
                               pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                          print(
+                              DateFormat('yyyy-MM-dd').format(DateTime.now()));
                           String formattedDate =
                               DateFormat('yyyy-MM-dd').format(pickedDate);
                           print(

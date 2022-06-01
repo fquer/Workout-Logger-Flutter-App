@@ -16,7 +16,7 @@ class _MyExerciseState extends State<MyExercise> {
   CalendarFormat format = CalendarFormat.month;
   DateTime selectedDay = DateTime.now();
   DateTime focusedDay = DateTime.now();
-  String dropdownValue = 'OHP';
+
   @override
   void initState() {
     selectedEvents = {};
@@ -37,6 +37,9 @@ class _MyExerciseState extends State<MyExercise> {
         .doc(widget.id)
         .collection("Calisma");
     int _index = 0;
+    final _formKey = GlobalKey<FormState>();
+
+    String dropdownValue = 'OHP';
 
     return Scaffold(
         backgroundColor: Color(0xff2c274c),
@@ -107,23 +110,50 @@ class _MyExerciseState extends State<MyExercise> {
                         titleTextStyle: TextStyle(color: Colors.white),
                         formatButtonShowsNext: false),
                   ),
-                  ..._getEventsfromDay(selectedDay).map(
-                    (Event event) => ListTile(
-                      title: Text(event.title),
+                  Container(
+                    width: 500,
+                    height: 200,
+                    child: ListView(
+                      children: [
+                        ..._getEventsfromDay(selectedDay).map(
+                          (Event event) => ListTile(
+                            title: Text(event.title),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  FloatingActionButton.extended(
-                    backgroundColor: Color.fromARGB(255, 55, 179, 112),
-                    onPressed: () => showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                              scrollable: true,
-                              backgroundColor: Color(0xff2c274c),
-                              title: Text("Add Exercise"),
-                              titleTextStyle: TextStyle(color: Colors.white),
-                              content: StatefulBuilder(builder:
-                                  (BuildContext context, StateSetter setState) {
-                                return Column(
+                  )
+                ],
+              );
+            }),
+        floatingActionButton: StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance.collection("Hareketler").snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              late List<String> workoutItems = [];
+              late List<String> workoutIDs = [];
+              if (snapshot.data != null) {
+                for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                  DocumentSnapshot snap = snapshot.data!.docs[i];
+                  workoutItems.add(snap["HareketIsim"]);
+                  workoutIDs.add(snap.id);
+                }
+              }
+              return FloatingActionButton.extended(
+                backgroundColor: Color.fromARGB(255, 55, 179, 112),
+                onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                          scrollable: true,
+                          backgroundColor: Color(0xff2c274c),
+                          title: Text("Add Exercise"),
+                          titleTextStyle: TextStyle(color: Colors.white),
+                          content: StatefulBuilder(builder:
+                              (BuildContext context, StateSetter setState) {
+                            return Form(
+                                key: _formKey,
+                                child: Column(
                                   children: [
                                     Theme(
                                       data: Theme.of(context).copyWith(
@@ -174,6 +204,14 @@ class _MyExerciseState extends State<MyExercise> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: TextFormField(
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty ||
+                                                value.length < 6) {
+                                              return 'Eenter your sets.';
+                                            }
+                                            return null;
+                                          },
                                           controller: setController,
                                           style: TextStyle(
                                               color: Color.fromARGB(
@@ -203,6 +241,14 @@ class _MyExerciseState extends State<MyExercise> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: TextFormField(
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty ||
+                                                value.length < 6) {
+                                              return 'Enter your reps.';
+                                            }
+                                            return null;
+                                          },
                                           controller: tekrarController,
                                           style: TextStyle(
                                               color: Color.fromARGB(
@@ -232,6 +278,14 @@ class _MyExerciseState extends State<MyExercise> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: TextFormField(
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty ||
+                                                value.length < 6) {
+                                              return 'Enter your working weight.';
+                                            }
+                                            return null;
+                                          },
                                           controller: kiloController,
                                           style: TextStyle(
                                               color: Color.fromARGB(
@@ -258,50 +312,50 @@ class _MyExerciseState extends State<MyExercise> {
                                           keyboardType: TextInputType.number),
                                     ),
                                   ],
-                                );
-                              }),
-                              actions: [
-                                TextButton(
-                                  child: Text("Cancel"),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                                TextButton(
-                                  child: Text("Ok"),
-                                  onPressed: () async {
-                                    if (dropdownValue.isEmpty) {
-                                    } else {
-                                      await calisma.add({
-                                        'HareketID': workoutIDs[_index],
-                                        'HareketIsim': dropdownValue,
-                                        'CalismaSet': setController.text,
-                                        'CalismaTekrar': tekrarController.text,
-                                        'CalismaAgirlik': kiloController.text,
-                                        'CalismaTarih': DateTime.now(),
-                                      }).then(
-                                          (value) => print('Calisma eklendi.'));
+                                ));
+                          }),
+                          actions: [
+                            TextButton(
+                              child: Text("Cancel"),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            TextButton(
+                              child: Text("Ok"),
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  if (dropdownValue.isEmpty) {
+                                  } else {
+                                    await calisma.add({
+                                      'HareketID': workoutIDs[_index],
+                                      'HareketIsim': dropdownValue,
+                                      'CalismaSet': setController.text,
+                                      'CalismaTekrar': tekrarController.text,
+                                      'CalismaAgirlik': kiloController.text,
+                                      'CalismaTarih': DateTime.now(),
+                                    }).then(
+                                        (value) => print('Calisma eklendi.'));
 
-                                      if (selectedEvents[selectedDay] != null) {
-                                        selectedEvents[selectedDay]?.add(
-                                          Event(title: dropdownValue),
-                                        );
-                                      } else {
-                                        selectedEvents[selectedDay] = [
-                                          Event(title: dropdownValue)
-                                        ];
-                                      }
-                                      dropdownValue = workoutItems[0];
+                                    if (selectedEvents[selectedDay] != null) {
+                                      selectedEvents[selectedDay]?.add(
+                                        Event(title: dropdownValue),
+                                      );
+                                    } else {
+                                      selectedEvents[selectedDay] = [
+                                        Event(title: dropdownValue)
+                                      ];
                                     }
-                                    Navigator.pop(context);
-                                    setState(() {});
-                                    return;
-                                  },
-                                ),
-                              ],
-                            )),
-                    label: Text("Add Exercise"),
-                    icon: Icon(Icons.add_task_sharp),
-                  )
-                ],
+                                    dropdownValue = workoutItems[0];
+                                  }
+                                  Navigator.pop(context);
+                                  setState(() {});
+                                  return;
+                                }
+                              },
+                            ),
+                          ],
+                        )),
+                label: Text("Add Exercise"),
+                icon: Icon(Icons.add_task_sharp),
               );
             }));
   }

@@ -13,16 +13,6 @@ class MyCustomForm extends StatefulWidget {
 class _MyCustomForm extends State<MyCustomForm> {
   @override
   Widget build(BuildContext context) {
-    FirebaseFirestore.instance
-        .collection('Kullanicilar')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      if (querySnapshot.docs.isNotEmpty) {
-        querySnapshot.docs.forEach((element) {
-          print("AAAAA " + element.id);
-        });
-      }
-    });
     TextEditingController dateinput = TextEditingController();
     final name_controller = TextEditingController();
     final surname_controller = TextEditingController();
@@ -31,8 +21,12 @@ class _MyCustomForm extends State<MyCustomForm> {
     final dialog_surname_controller = TextEditingController();
     final dialog_weight_controller = TextEditingController();
     TextEditingController dialog_dateinput = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+    String now = '';
+    String weigth_id = '';
+    bool founded = false;
 
-    CollectionReference edit_weight = FirebaseFirestore.instance
+    CollectionReference add_weight = FirebaseFirestore.instance
         .collection('Kullanicilar')
         .doc(widget.id)
         .collection("Kilo");
@@ -51,8 +45,24 @@ class _MyCustomForm extends State<MyCustomForm> {
                   if (snap.id == widget.id) {
                     name_controller.text = snap["KullaniciAd"];
                     surname_controller.text = snap["KullaniciSoyad"];
-                    weight_controller.text = "123";
+
                     dateinput.text = snap["KullaniciDogumTarih"];
+
+                    FirebaseFirestore.instance
+                        .collection('Kullanicilar')
+                        .doc(widget.id)
+                        .collection('Kilo')
+                        .orderBy("KiloTarih")
+                        .get()
+                        .then((QuerySnapshot querySnapshot) {
+                      print(querySnapshot.docs.isEmpty);
+                      if (querySnapshot.docs.isNotEmpty) {
+                        print(querySnapshot.docs.last['KiloDeger']);
+                        weight_controller.text =
+                            querySnapshot.docs.last['KiloDeger'];
+                        weigth_id = querySnapshot.docs.last.id;
+                      }
+                    });
                   }
                 }
               }
@@ -131,24 +141,6 @@ class _MyCustomForm extends State<MyCustomForm> {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 25, vertical: 16),
-                    child: TextFormField(
-                        enabled: false,
-                        controller: weight_controller,
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255)),
-                        maxLength: 5,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.line_weight, color: Colors.white),
-                          border: UnderlineInputBorder(),
-                          labelText: 'Weight',
-                          labelStyle: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
-                        ),
-                        keyboardType: TextInputType.number),
-                  ),
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -170,6 +162,8 @@ class _MyCustomForm extends State<MyCustomForm> {
                               builder: (context) => Dialog(
                                   backgroundColor: Color(0xff2c274c),
                                   child: SingleChildScrollView(
+                                      child: Form(
+                                    key: _formKey,
                                     child: Column(
                                       children: <Widget>[
                                         Padding(
@@ -185,6 +179,13 @@ class _MyCustomForm extends State<MyCustomForm> {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 25, vertical: 16),
                                           child: TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Name is can't be empty";
+                                              }
+                                              return null;
+                                            },
                                             controller: dialog_name_controller,
                                             style: TextStyle(
                                                 color: Color.fromARGB(
@@ -217,6 +218,13 @@ class _MyCustomForm extends State<MyCustomForm> {
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 25, vertical: 16),
                                           child: TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return "Surname is can't be empty";
+                                              }
+                                              return null;
+                                            },
                                             controller:
                                                 dialog_surname_controller,
                                             style: TextStyle(
@@ -293,7 +301,6 @@ class _MyCustomForm extends State<MyCustomForm> {
                                                 setState(() {
                                                   dialog_dateinput.text =
                                                       formattedDate;
-                                                  print(dateinput.text);
                                                 });
                                               } else {
                                                 print("Tarih Seçilmedi !");
@@ -301,64 +308,28 @@ class _MyCustomForm extends State<MyCustomForm> {
                                             },
                                           ),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 25, vertical: 16),
-                                          child: TextFormField(
-                                              controller:
-                                                  dialog_weight_controller,
-                                              style: TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255)),
-                                              maxLength: 5,
-                                              decoration: const InputDecoration(
-                                                enabledBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color.fromARGB(
-                                                          255, 255, 255, 255)),
-                                                ),
-                                                focusedBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color(0xff4af699)),
-                                                ),
-                                                icon: Icon(Icons.line_weight,
-                                                    color: Colors.white),
-                                                border: UnderlineInputBorder(),
-                                                labelText: 'Weight',
-                                                labelStyle: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255)),
-                                              ),
-                                              keyboardType:
-                                                  TextInputType.number),
-                                        ),
                                         FloatingActionButton.extended(
                                           onPressed: () async {
-                                            await FirebaseFirestore.instance
-                                                .collection('Kullanicilar')
-                                                .doc(widget.id)
-                                                .update({
-                                              'KullaniciAd':
-                                                  dialog_name_controller.text,
-                                              'KullaniciSoyad':
-                                                  dialog_surname_controller
-                                                      .text,
-                                              'KullaniciDogumTarih':
-                                                  dialog_dateinput.text,
-                                            }).then((value) =>
-                                                    print('Calisma eklendi.'));
-                                            await edit_weight.add({
-                                              'KiloDeger':
-                                                  dialog_weight_controller.text,
-                                              'KiloTarih':
-                                                  DateFormat('yyyy-MM-dd')
-                                                      .format(DateTime.now()),
-                                            }).then((value) =>
-                                                print('kilo eklendi.'));
-                                            print("Saved");
-                                            Navigator.pop(context);
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              await FirebaseFirestore.instance
+                                                  .collection('Kullanicilar')
+                                                  .doc(widget.id)
+                                                  .update({
+                                                'KullaniciAd':
+                                                    dialog_name_controller.text,
+                                                'KullaniciSoyad':
+                                                    dialog_surname_controller
+                                                        .text,
+                                                'KullaniciDogumTarih':
+                                                    dialog_dateinput.text,
+                                              }).then((value) => print(
+                                                      'Kullanici guncellendi.'));
+                                            }
+
+                                            setState(() {
+                                              Navigator.pop(context);
+                                            });
                                           },
                                           label: Text("Save",
                                               style: TextStyle(
@@ -374,10 +345,217 @@ class _MyCustomForm extends State<MyCustomForm> {
                                         ),
                                       ],
                                     ),
-                                  )));
+                                  ))));
                         },
-                        child: const Text('Edit'),
+                        child: const Text('Edit Profile'),
                       ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 300,
+                          height: 100,
+                          child: TextFormField(
+                              enabled: false,
+                              controller: weight_controller,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255)),
+                              maxLength: 5,
+                              decoration: const InputDecoration(
+                                icon: Icon(Icons.line_weight,
+                                    color: Colors.white),
+                                border: UnderlineInputBorder(),
+                                labelText: 'Weight',
+                                labelStyle: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255)),
+                              ),
+                              keyboardType: TextInputType.number),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 20, left: 10),
+                          child: IconButton(
+                            onPressed: () async {
+                              dialog_dateinput.text = dateinput.text;
+                              dialog_name_controller.text =
+                                  name_controller.text;
+                              dialog_surname_controller.text =
+                                  surname_controller.text;
+                              dialog_weight_controller.text =
+                                  weight_controller.text;
+
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => Dialog(
+                                      backgroundColor: Color(0xff2c274c),
+                                      child: SingleChildScrollView(
+                                          child: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          children: <Widget>[
+                                            Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 25,
+                                                        vertical: 16),
+                                                child: Text(
+                                                  "Update your weight",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 20),
+                                                )),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 25,
+                                                      vertical: 16),
+                                              child: TextFormField(
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return "Weight is can't be empty";
+                                                    }
+                                                    return null;
+                                                  },
+                                                  controller:
+                                                      dialog_weight_controller,
+                                                  style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 255, 255, 255)),
+                                                  maxLength: 5,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    enabledBorder:
+                                                        UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Color.fromARGB(
+                                                              255,
+                                                              255,
+                                                              255,
+                                                              255)),
+                                                    ),
+                                                    focusedBorder:
+                                                        UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Color(
+                                                              0xff4af699)),
+                                                    ),
+                                                    icon: Icon(
+                                                        Icons.line_weight,
+                                                        color: Colors.white),
+                                                    border:
+                                                        UnderlineInputBorder(),
+                                                    labelText: 'Weight',
+                                                    labelStyle: TextStyle(
+                                                        color: Color.fromARGB(
+                                                            255,
+                                                            255,
+                                                            255,
+                                                            255)),
+                                                  ),
+                                                  keyboardType:
+                                                      TextInputType.number),
+                                            ),
+                                            FloatingActionButton.extended(
+                                              onPressed: () async {
+                                                if (_formKey.currentState!
+                                                    .validate()) {
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'Kullanicilar')
+                                                      .doc(widget.id)
+                                                      .collection('Kilo')
+                                                      .get()
+                                                      .then((QuerySnapshot
+                                                          querySnapshot) {
+                                                    print(querySnapshot
+                                                        .docs.isNotEmpty);
+                                                    if (querySnapshot
+                                                        .docs.isNotEmpty) {
+                                                      querySnapshot.docs
+                                                          .forEach((element) {
+                                                        now = DateFormat(
+                                                                'yyyy-MM-dd')
+                                                            .format(
+                                                                DateTime.now());
+                                                        if (now ==
+                                                            element[
+                                                                'KiloTarih']) {
+                                                          founded = true;
+                                                        }
+                                                      });
+
+                                                      if (founded == true) {
+                                                        FirebaseFirestore
+                                                            .instance
+                                                            .collection(
+                                                                'Kullanicilar')
+                                                            .doc(widget.id)
+                                                            .collection('Kilo')
+                                                            .doc(weigth_id)
+                                                            .update({
+                                                          'KiloDeger':
+                                                              dialog_weight_controller
+                                                                  .text,
+                                                        }).then((value) => print(
+                                                                'Kilo guncellendi. Ayni tarihten bulundu.'));
+                                                        founded = false;
+                                                      } else {
+                                                        add_weight.add({
+                                                          'KiloDeger':
+                                                              dialog_weight_controller
+                                                                  .text,
+                                                          'KiloTarih': DateFormat(
+                                                                  'yyyy-MM-dd')
+                                                              .format(DateTime
+                                                                  .now()),
+                                                        }).then((value) => print(
+                                                            'kilo eklendi. Ayni tarihten bulunamadi.'));
+                                                      }
+                                                    } else {
+                                                      add_weight.add({
+                                                        'KiloDeger':
+                                                            dialog_weight_controller
+                                                                .text,
+                                                        'KiloTarih': DateFormat(
+                                                                'yyyy-MM-dd')
+                                                            .format(
+                                                                DateTime.now()),
+                                                      }).then((value) => print(
+                                                          'Kilo eklendi. Sifir hesap kullanici.'));
+                                                    }
+                                                  });
+                                                }
+
+                                                setState(() {
+                                                  Navigator.pop(context);
+                                                });
+                                              },
+                                              label: Text("Update",
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              icon: Icon(
+                                                Icons.add_task_sharp,
+                                                color: Colors.white,
+                                              ),
+                                              backgroundColor:
+                                                  Color(0xff4af699),
+                                            ),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                          ],
+                                        ),
+                                      ))));
+                            },
+                            icon: Icon(Icons.edit, color: Colors.white),
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ],

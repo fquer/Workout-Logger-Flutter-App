@@ -41,8 +41,26 @@ class _Home extends State<Home> {
     return Scaffold(
       backgroundColor: Color(0xff2c274c),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Workout Logger'),
         backgroundColor: Color.fromARGB(255, 29, 26, 51),
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 15.0),
+              child: GestureDetector(
+                onTap: () async {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => LoginPage(
+                            title: "Log In",
+                          )));
+                },
+                child: Icon(
+                  Icons.logout_outlined,
+                  color: Colors.white,
+                  size: 24.0,
+                ),
+              )),
+        ],
       ),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
