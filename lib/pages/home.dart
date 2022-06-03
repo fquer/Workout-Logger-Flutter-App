@@ -32,7 +32,7 @@ class _Home extends State<Home> {
       MyExercise(
         id: widget.id,
       ),
-      LineChartEx(),
+      LineChartEx(id: widget.id),
       MyCustomForm(
         id: widget.id,
       )

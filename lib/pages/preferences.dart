@@ -13,6 +13,7 @@ class MyCustomForm extends StatefulWidget {
 class _MyCustomForm extends State<MyCustomForm> {
   @override
   Widget build(BuildContext context) {
+    print(DateTime.now().runtimeType);
     TextEditingController dateinput = TextEditingController();
     final name_controller = TextEditingController();
     final surname_controller = TextEditingController();
@@ -22,7 +23,7 @@ class _MyCustomForm extends State<MyCustomForm> {
     final dialog_weight_controller = TextEditingController();
     TextEditingController dialog_dateinput = TextEditingController();
     final _formKey = GlobalKey<FormState>();
-    String now = '';
+    DateTime now;
     String weigth_id = '';
     bool founded = false;
 
@@ -69,6 +70,7 @@ class _MyCustomForm extends State<MyCustomForm> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  Text(name_controller.text),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 25, vertical: 16),
@@ -325,11 +327,11 @@ class _MyCustomForm extends State<MyCustomForm> {
                                                     dialog_dateinput.text,
                                               }).then((value) => print(
                                                       'Kullanici guncellendi.'));
-                                            }
 
-                                            setState(() {
-                                              Navigator.pop(context);
-                                            });
+                                              setState(() {
+                                                Navigator.pop(context);
+                                              });
+                                            }
                                           },
                                           label: Text("Save",
                                               style: TextStyle(
@@ -472,20 +474,32 @@ class _MyCustomForm extends State<MyCustomForm> {
                                                       .get()
                                                       .then((QuerySnapshot
                                                           querySnapshot) {
-                                                    print(querySnapshot
-                                                        .docs.isNotEmpty);
                                                     if (querySnapshot
                                                         .docs.isNotEmpty) {
                                                       querySnapshot.docs
                                                           .forEach((element) {
-                                                        now = DateFormat(
+                                                        now = DateTime.now();
+                                                        DateTime db_cal =
+                                                            element['KiloTarih']
+                                                                .toDate();
+
+                                                        print("asd");
+                                                        print(DateFormat(
                                                                 'yyyy-MM-dd')
-                                                            .format(
-                                                                DateTime.now());
-                                                        if (now ==
-                                                            element[
-                                                                'KiloTarih']) {
+                                                            .format(now));
+                                                        print("asd");
+                                                        print(DateFormat(
+                                                                'yyyy-MM-dd')
+                                                            .format(db_cal));
+                                                        if (DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(now) ==
+                                                            DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    db_cal)) {
                                                           founded = true;
+                                                          print("girdi");
                                                         }
                                                       });
 
@@ -509,10 +523,8 @@ class _MyCustomForm extends State<MyCustomForm> {
                                                           'KiloDeger':
                                                               dialog_weight_controller
                                                                   .text,
-                                                          'KiloTarih': DateFormat(
-                                                                  'yyyy-MM-dd')
-                                                              .format(DateTime
-                                                                  .now()),
+                                                          'KiloTarih':
+                                                              DateTime.now(),
                                                         }).then((value) => print(
                                                             'kilo eklendi. Ayni tarihten bulunamadi.'));
                                                       }
@@ -521,19 +533,16 @@ class _MyCustomForm extends State<MyCustomForm> {
                                                         'KiloDeger':
                                                             dialog_weight_controller
                                                                 .text,
-                                                        'KiloTarih': DateFormat(
-                                                                'yyyy-MM-dd')
-                                                            .format(
-                                                                DateTime.now()),
+                                                        'KiloTarih':
+                                                            DateTime.now(),
                                                       }).then((value) => print(
                                                           'Kilo eklendi. Sifir hesap kullanici.'));
                                                     }
                                                   });
+                                                  setState(() {
+                                                    Navigator.pop(context);
+                                                  });
                                                 }
-
-                                                setState(() {
-                                                  Navigator.pop(context);
-                                                });
                                               },
                                               label: Text("Update",
                                                   style: TextStyle(

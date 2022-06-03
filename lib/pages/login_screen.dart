@@ -87,8 +87,10 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                     controller: password_controller,
                     validator: (value) {
-                      if (value == null || value.isEmpty || value.length < 6) {
+                      if (value == null || value.isEmpty) {
                         return 'Please enter your password';
+                      } else if (value.length < 6) {
+                        return 'Minimum password length is 6.';
                       } else if (control == false) {
                         return "Inc";
                       }

@@ -60,6 +60,7 @@ class _MyExerciseState extends State<MyExercise> {
               return Column(
                 children: <Widget>[
                   TableCalendar(
+                    rowHeight: 35,
                     focusedDay: selectedDay,
                     firstDay: DateTime(1999),
                     lastDay: DateTime(2030),
@@ -206,8 +207,7 @@ class _MyExerciseState extends State<MyExercise> {
                                       child: TextFormField(
                                           validator: (value) {
                                             if (value == null ||
-                                                value.isEmpty ||
-                                                value.length < 6) {
+                                                value.isEmpty) {
                                               return 'Eenter your sets.';
                                             }
                                             return null;
@@ -243,8 +243,7 @@ class _MyExerciseState extends State<MyExercise> {
                                       child: TextFormField(
                                           validator: (value) {
                                             if (value == null ||
-                                                value.isEmpty ||
-                                                value.length < 6) {
+                                                value.isEmpty) {
                                               return 'Enter your reps.';
                                             }
                                             return null;
@@ -280,8 +279,7 @@ class _MyExerciseState extends State<MyExercise> {
                                       child: TextFormField(
                                           validator: (value) {
                                             if (value == null ||
-                                                value.isEmpty ||
-                                                value.length < 6) {
+                                                value.isEmpty) {
                                               return 'Enter your working weight.';
                                             }
                                             return null;

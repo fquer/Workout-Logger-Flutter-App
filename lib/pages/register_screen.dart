@@ -172,8 +172,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                     controller: password_controller,
                     validator: (value) {
-                      if (value == null || value.isEmpty || value.length < 6) {
+                      if (value == null || value.isEmpty) {
                         return 'Please enter your password';
+                      } else if (value.length < 6) {
+                        return 'Minimum password length is 6.';
                       }
                       return null;
                     },
@@ -208,8 +210,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  TextField(
+                  TextFormField(
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length < 6) {
+                        return 'Please enter your birthdate';
+                      }
+                      return null;
+                    },
                     controller:
                         dateinput, //editing controller of this TextField
                     decoration: InputDecoration(
