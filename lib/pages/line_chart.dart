@@ -72,7 +72,11 @@ class LineChartExState extends State<LineChartEx> {
     ];
   }
 
-  LineChartData sampleData1(List<double> weight_items) {
+  LineChartData sampleData1(
+      List<double> weight_items, List<double> working_items, String value) {
+    if (value != 'Weight') {
+      weight_items = working_items;
+    }
     double yMax = 0, yMin = weight_items[0];
     for (int i = 0; i < weight_items.length; i++) {
       if (yMax < weight_items[i]) {
@@ -103,41 +107,6 @@ class LineChartExState extends State<LineChartEx> {
               fontSize: 16,
             ),
             margin: 10,
-            getTitles: (value) {
-              switch (value.toInt()) {
-                case 1:
-                  return '1';
-                case 2:
-                  return '2';
-                case 3:
-                  return '3';
-                case 4:
-                  return '4';
-                case 5:
-                  return '5';
-                case 10:
-                  return '10';
-                case 20:
-                  return '20';
-                case 30:
-                  return '30';
-                case 40:
-                  return '40';
-                case 50:
-                  return '50';
-                case 60:
-                  return '60';
-                case 70:
-                  return '70';
-                case 80:
-                  return '80';
-                case 90:
-                  return '90';
-                case 100:
-                  return '100';
-              }
-              return '';
-            },
           ),
           leftTitles: SideTitles(
             showTitles: true,
@@ -162,6 +131,8 @@ class LineChartExState extends State<LineChartEx> {
                   return '60';
                 case 70:
                   return '70';
+                case 75:
+                  return '75';
                 case 80:
                   return '80';
                 case 90:
@@ -213,248 +184,290 @@ class LineChartExState extends State<LineChartEx> {
             }
           }
           return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection("Kullanicilar")
-                .doc(widget.id)
-                .collection("Kilo")
-                .where('KiloTarih',
-                    isGreaterThan: DateTime.parse(firstdate.text))
-                .where('KiloTarih',
-                    isLessThan: DateTime.parse(endingdate.text)
-                        .add(const Duration(days: 1)))
-                .orderBy("KiloTarih")
-                .snapshots(),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              late List<double> weight_items = [];
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                weight_items = [0];
-              }
-
-              if (snapshot.data != null) {
-                weight_items = [];
-                for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                  DocumentSnapshot snap = snapshot.data!.docs[i];
-
-                  weight_items.add(double.parse(snap["KiloDeger"]));
+              stream: FirebaseFirestore.instance
+                  .collection("Kullanicilar")
+                  .doc(widget.id)
+                  .collection("Kilo")
+                  .where('KiloTarih',
+                      isGreaterThan: DateTime.parse(firstdate.text))
+                  .where('KiloTarih',
+                      isLessThan: DateTime.parse(endingdate.text)
+                          .add(const Duration(days: 1)))
+                  .orderBy("KiloTarih")
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                late List<double> weight_items = [];
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  weight_items = [0];
                 }
-              }
-              return Column(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                              canvasColor: Color.fromARGB(255, 35, 31, 61),
-                            ),
-                            child: DropdownButton<String>(
-                              isExpanded: true,
-                              value: dropdownValue,
-                              icon: const Icon(
-                                Icons.arrow_downward,
-                                color: Colors.white,
-                                size: 17,
+
+                if (snapshot.data != null) {
+                  weight_items = [];
+                  for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                    DocumentSnapshot snap = snapshot.data!.docs[i];
+
+                    weight_items.add(double.parse(snap["KiloDeger"]));
+                  }
+                }
+                print("Kilo");
+                print(weight_items);
+
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("Kullanicilar")
+                      .doc(widget.id)
+                      .collection("Calisma")
+                      .where('HareketIsim', isEqualTo: dropdownValue)
+                      .orderBy("CalismaTarih")
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    late List<double> working_items = [0];
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      working_items = [0];
+                    }
+
+                    if (snapshot.data != null) {
+                      working_items = [0];
+                      for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                        DocumentSnapshot snap = snapshot.data!.docs[i];
+                        working_items.remove(0);
+                        working_items.add(double.parse(snap["CalismaAgirlik"]));
+                      }
+                    }
+                    print("Calisma");
+                    print(working_items);
+
+                    return Column(children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                child: Theme(
+                                  data: Theme.of(context).copyWith(
+                                    canvasColor:
+                                        Color.fromARGB(255, 35, 31, 61),
+                                  ),
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    value: dropdownValue,
+                                    icon: const Icon(
+                                      Icons.arrow_downward,
+                                      color: Colors.white,
+                                      size: 17,
+                                    ),
+                                    elevation: 16,
+                                    style: const TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 255, 255, 255)),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        dropdownValue = newValue!;
+                                      });
+                                    },
+                                    items: currencyItems
+                                        .map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               ),
-                              elevation: 16,
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 255, 255, 255)),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  dropdownValue = newValue!;
-                                });
-                              },
-                              items: currencyItems
-                                  .map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
                             ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
-                          controller:
-                              firstdate, //editing controller of this TextField
-                          decoration: InputDecoration(
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 255, 255, 255)),
-                            ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xff4af699)),
-                            ),
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            labelText: "Başlangıç",
-                            labelStyle:
-                                TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                          readOnly:
-                              true, //set it true, so that user will not able to edit text
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now()
-                                    .subtract(const Duration(days: 1)),
-                                firstDate: DateTime(
-                                    1900), //DateTime.now() - not to allow to choose before today.
-                                lastDate: DateTime.now()
-                                    .subtract(const Duration(days: 1)));
+                            Expanded(
+                              child: TextField(
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255)),
+                                controller:
+                                    firstdate, //editing controller of this TextField
+                                decoration: InputDecoration(
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color:
+                                            Color.fromARGB(255, 255, 255, 255)),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Color(0xff4af699)),
+                                  ),
+                                  icon: Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  labelText: "Başlangıç",
+                                  labelStyle: TextStyle(
+                                      color: Colors.white, fontSize: 15),
+                                ),
+                                readOnly:
+                                    true, //set it true, so that user will not able to edit text
+                                onTap: () async {
+                                  DateTime? pickedDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now()
+                                          .subtract(const Duration(days: 1)),
+                                      firstDate: DateTime(
+                                          1900), //DateTime.now() - not to allow to choose before today.
+                                      lastDate: DateTime.now()
+                                          .subtract(const Duration(days: 1)));
 
-                            if (pickedDate != null) {
-                              print(
-                                  pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-                              print(DateFormat('yyyy-MM-dd')
-                                  .format(DateTime.now()));
-                              String formattedDate =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-                              print(
-                                  formattedDate); //formatted date output using intl package =>  2021-03-16
-                              //you can implement different kind of Date Format here according to your requirement
+                                  if (pickedDate != null) {
+                                    print(
+                                        pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                    print(DateFormat('yyyy-MM-dd')
+                                        .format(DateTime.now()));
+                                    String formattedDate =
+                                        DateFormat('yyyy-MM-dd')
+                                            .format(pickedDate);
+                                    print(
+                                        formattedDate); //formatted date output using intl package =>  2021-03-16
+                                    //you can implement different kind of Date Format here according to your requirement
 
-                              setState(() {
-                                firstdate.text =
-                                    formattedDate; //set output date to TextField value.
-                              });
-                            } else {
-                              print("Tarih Seçilmedi !");
-                            }
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
-                          controller:
-                              endingdate, //editing controller of this TextField
-                          decoration: InputDecoration(
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 255, 255, 255)),
+                                    setState(() {
+                                      firstdate.text =
+                                          formattedDate; //set output date to TextField value.
+                                    });
+                                  } else {
+                                    print("Tarih Seçilmedi !");
+                                  }
+                                },
+                              ),
                             ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xff4af699)),
-                            ),
-                            suffixIconColor: Color.fromARGB(255, 255, 255, 255),
-                            icon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            labelText: "Bitiş",
-                            labelStyle:
-                                TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                          readOnly:
-                              true, //set it true, so that user will not able to edit text
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(
-                                    1900), //DateTime.now() - not to allow to choose before today.
-                                lastDate: DateTime.now());
+                            Expanded(
+                              child: TextField(
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255)),
+                                controller:
+                                    endingdate, //editing controller of this TextField
+                                decoration: InputDecoration(
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color:
+                                            Color.fromARGB(255, 255, 255, 255)),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Color(0xff4af699)),
+                                  ),
+                                  suffixIconColor:
+                                      Color.fromARGB(255, 255, 255, 255),
+                                  icon: Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  labelText: "Bitiş",
+                                  labelStyle: TextStyle(
+                                      color: Colors.white, fontSize: 15),
+                                ),
+                                readOnly:
+                                    true, //set it true, so that user will not able to edit text
+                                onTap: () async {
+                                  DateTime? pickedDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(
+                                          1900), //DateTime.now() - not to allow to choose before today.
+                                      lastDate: DateTime.now());
 
-                            if (pickedDate != null) {
-                              print(
-                                  pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-                              String formattedDate =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-                              print(
-                                  formattedDate); //formatted date output using intl package =>  2021-03-16
-                              //you can implement different kind of Date Format here according to your requirement
+                                  if (pickedDate != null) {
+                                    print(
+                                        pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                    String formattedDate =
+                                        DateFormat('yyyy-MM-dd')
+                                            .format(pickedDate);
+                                    print(
+                                        formattedDate); //formatted date output using intl package =>  2021-03-16
+                                    //you can implement different kind of Date Format here according to your requirement
 
-                              setState(() {
-                                endingdate.text =
-                                    formattedDate; //set output date to TextField value.
-                              });
-                            } else {
-                              print("Tarih Seçilmedi !");
-                            }
-                          },
+                                    setState(() {
+                                      endingdate.text =
+                                          formattedDate; //set output date to TextField value.
+                                    });
+                                  } else {
+                                    print("Tarih Seçilmedi !");
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                    height: 420,
-                    //margin: EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      //borderRadius: const BorderRadius.all(Radius.circular(18)),
-                      color: Color(0xff2c274c),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        const SizedBox(
-                          height: 25,
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        Text(
-                          dropdownValue,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2,
+                      Container(
+                          height: 420,
+                          //margin: EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            //borderRadius: const BorderRadius.all(Radius.circular(18)),
+                            color: Color(0xff2c274c),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(
-                          height: 25,
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 16.0),
-                            child: LineChart(sampleData1(weight_items)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              const SizedBox(
+                                height: 25,
+                              ),
+                              const SizedBox(
+                                height: 4,
+                              ),
+                              Text(
+                                dropdownValue,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(
+                                height: 25,
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: LineChart(sampleData1(weight_items,
+                                      working_items, dropdownValue)),
+                                ),
+                              ),
+                            ],
+                          )),
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 30,
                           ),
-                        ),
-                      ],
-                    )),
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 30,
-                    ),
-                    Text(
-                      firstdate.text,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 130, 125, 170),
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 205,
-                    ),
-                    Text(
-                      endingdate.text,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 130, 125, 170),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                )
-              ]);
-            },
-          );
+                          Text(
+                            firstdate.text,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 130, 125, 170),
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 205,
+                          ),
+                          Text(
+                            endingdate.text,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 130, 125, 170),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      )
+                    ]);
+                  },
+                );
+              });
         });
   }
 }

@@ -3,6 +3,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:workoutlogger/pages/home.dart';
 import 'package:workoutlogger/pages/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key, required this.title}) : super(key: key);
@@ -13,17 +14,25 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  @override
+  void initState() {
+    _loadUserEmailPassword();
+    _handleRemeberme();
+    super.initState();
+  }
+
   final _formKey = GlobalKey<FormState>();
   var rememberValue = false;
   String id = '';
   bool control = true;
   String errorMsg = '';
   String? deneme = '';
+  bool _isChecked = false;
+  final email_controller = TextEditingController();
+  final password_controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final email_controller = TextEditingController();
-    final password_controller = TextEditingController();
     deneme = null;
     return Scaffold(
       backgroundColor: Color(0xff2c274c),
@@ -35,10 +44,7 @@ class _LoginPageState extends State<LoginPage> {
           children: <Widget>[
             const Text(
               'Sign in',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 40,
-                  color: Colors.white),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40, color: Colors.white),
             ),
             const SizedBox(
               height: 60,
@@ -50,9 +56,7 @@ class _LoginPageState extends State<LoginPage> {
                   TextFormField(
                     style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                     controller: email_controller,
-                    validator: (value) => EmailValidator.validate(value!)
-                        ? null
-                        : "Please enter a valid email",
+                    validator: (value) => EmailValidator.validate(value!) ? null : "Please enter a valid email",
                     maxLines: 1,
                     decoration: InputDecoration(
                       hintText: 'Enter your email',
@@ -138,6 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                       activeColor: Color(0xff2c274c),
                       onChanged: (newValue) {
                         setState(() {
+                          print(newValue);
                           rememberValue = newValue!;
                         });
                       },
@@ -157,14 +162,8 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        FirebaseFirestore.instance
-                            .collection('Kullanicilar')
-                            .where('KullaniciEmail',
-                                isEqualTo: email_controller.text)
-                            .where('KullaniciSifre',
-                                isEqualTo: password_controller.text)
-                            .get()
-                            .then((QuerySnapshot querySnapshot) {
+                        _handleRemeberme();
+                        FirebaseFirestore.instance.collection('Kullanicilar').where('KullaniciEmail', isEqualTo: email_controller.text).where('KullaniciSifre', isEqualTo: password_controller.text).get().then((QuerySnapshot querySnapshot) {
                           if (querySnapshot.docs.isNotEmpty) {
                             querySnapshot.docs.forEach((element) {
                               print(element.id);
@@ -191,8 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: const Text(
                       'Sign in',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                   const SizedBox(
@@ -209,10 +207,7 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const RegisterPage(title: 'Register UI'),
-                                maintainState: false),
+                            MaterialPageRoute(builder: (context) => const RegisterPage(title: 'Register UI'), maintainState: false),
                           );
                         },
                         child: const Text(
@@ -231,5 +226,45 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  void _handleRemeberme() {
+    print("Handle Rember Me");
+    _isChecked = rememberValue;
+    print(rememberValue);
+    SharedPreferences.getInstance().then(
+      (prefs) {
+        prefs.setBool("remember_me", rememberValue);
+        prefs.setString('email', email_controller.text);
+        prefs.setString('password', password_controller.text);
+      },
+    );
+    setState(() {
+      _isChecked = rememberValue;
+    });
+  }
+
+  void _loadUserEmailPassword() async {
+    print("Load Email");
+    try {
+      SharedPreferences _prefs = await SharedPreferences.getInstance();
+      var _email = _prefs.getString("email") ?? "";
+      var _password = _prefs.getString("password") ?? "";
+      var _remeberMe = _prefs.getBool("remember_me") ?? false;
+      rememberValue = true;
+      print(_remeberMe);
+      print(_email);
+      print(_password);
+      if (_remeberMe) {
+        setState(() {
+          _isChecked = true;
+        });
+        email_controller.text = _email ?? "";
+        password_controller.text = _password ?? "";
+      }
+    } catch (e) {
+      print(e);
+      print('hata');
+    }
   }
 }

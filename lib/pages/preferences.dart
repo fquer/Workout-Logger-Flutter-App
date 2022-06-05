@@ -70,7 +70,6 @@ class _MyCustomForm extends State<MyCustomForm> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(name_controller.text),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 25, vertical: 16),

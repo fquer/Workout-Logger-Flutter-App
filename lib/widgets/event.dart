@@ -6,33 +6,16 @@ import '../pages/app_styles.dart';
 
 class Event {
   final String title;
-  Event({required this.title});
+  final String set;
+  final String rep;
+  final String weight;
+  final String id;
+  Event(
+      {required this.title,
+      required this.set,
+      required this.rep,
+      required this.weight,
+      required this.id});
 
   String toString() => this.title;
-}
-
-Widget noteCard(Function()? onTap, QueryDocumentSnapshot doc) {
-  return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(8),
-        margin: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              doc["HareketIsim"],
-              style: Appstyle.mainTitle,
-            ),
-            SizedBox(height: 4),
-            Text(
-              doc["HareketTarifLink"],
-              style: Appstyle.mainContent,
-            ),
-          ],
-        ),
-      ));
 }
