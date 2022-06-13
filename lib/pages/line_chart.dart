@@ -17,36 +17,21 @@ class LineChartExState extends State<LineChartEx> {
   TextEditingController firstdate = TextEditingController();
   TextEditingController endingdate = TextEditingController();
   String dropdownValue = 'Weight';
+  DateTime date = DateTime(1900);
+  double working_weight = 0;
 
   @override
   void initState() {
     super.initState();
-    firstdate = new TextEditingController(
-        text: DateFormat('yyyy-MM-dd')
-            .format(DateTime.now().subtract(const Duration(days: 30))));
-    endingdate = new TextEditingController(
-        text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+    firstdate = new TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(const Duration(days: 30))));
+    endingdate = new TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
   }
 
   String bottomGrap(int gap, int width) {
-    if (DateTime.parse(endingdate.text).month -
-            DateTime.parse(firstdate.text).month ==
-        0) {
-      return ((((DateTime.parse(endingdate.text).day) -
-                  (DateTime.parse(firstdate.text).day))) *
-              gap /
-              width)
-          .round()
-          .toString();
+    if (DateTime.parse(endingdate.text).month - DateTime.parse(firstdate.text).month == 0) {
+      return ((((DateTime.parse(endingdate.text).day) - (DateTime.parse(firstdate.text).day))) * gap / width).round().toString();
     }
-    return (((DateTime.parse(endingdate.text).month -
-                    DateTime.parse(firstdate.text).month) *
-                ((DateTime.parse(endingdate.text).day) +
-                    (30 - DateTime.parse(firstdate.text).day))) *
-            gap /
-            width)
-        .round()
-        .toString();
+    return (((DateTime.parse(endingdate.text).month - DateTime.parse(firstdate.text).month) * ((DateTime.parse(endingdate.text).day) + (30 - DateTime.parse(firstdate.text).day))) * gap / width).round().toString();
   }
 
   List<LineChartBarData> linesBarData(List<double> weight_items) {
@@ -72,8 +57,7 @@ class LineChartExState extends State<LineChartEx> {
     ];
   }
 
-  LineChartData sampleData1(
-      List<double> weight_items, List<double> working_items, String value) {
+  LineChartData sampleData1(List<double> weight_items, List<double> working_items, String value) {
     if (value != 'Weight') {
       weight_items = working_items;
     }
@@ -188,25 +172,21 @@ class LineChartExState extends State<LineChartEx> {
                   .collection("Kullanicilar")
                   .doc(widget.id)
                   .collection("Kilo")
-                  .where('KiloTarih',
-                      isGreaterThan: DateTime.parse(firstdate.text))
-                  .where('KiloTarih',
-                      isLessThan: DateTime.parse(endingdate.text)
-                          .add(const Duration(days: 1)))
+                  .where('KiloTarih', isGreaterThan: DateTime.parse(firstdate.text))
+                  .where('KiloTarih', isLessThan: DateTime.parse(endingdate.text))
                   .orderBy("KiloTarih")
                   .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 late List<double> weight_items = [];
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   weight_items = [0];
                 }
 
                 if (snapshot.data != null) {
-                  weight_items = [];
+                  weight_items = [0];
                   for (int i = 0; i < snapshot.data!.docs.length; i++) {
                     DocumentSnapshot snap = snapshot.data!.docs[i];
-
+                    weight_items.remove(0);
                     weight_items.add(double.parse(snap["KiloDeger"]));
                   }
                 }
@@ -219,10 +199,11 @@ class LineChartExState extends State<LineChartEx> {
                       .doc(widget.id)
                       .collection("Calisma")
                       .where('HareketIsim', isEqualTo: dropdownValue)
+                      .where('CalismaTarih', isGreaterThan: DateTime.parse(firstdate.text))
+                      .where('CalismaTarih', isLessThan: DateTime.parse(endingdate.text))
                       .orderBy("CalismaTarih")
                       .snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     late List<double> working_items = [0];
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -234,7 +215,19 @@ class LineChartExState extends State<LineChartEx> {
                       for (int i = 0; i < snapshot.data!.docs.length; i++) {
                         DocumentSnapshot snap = snapshot.data!.docs[i];
                         working_items.remove(0);
-                        working_items.add(double.parse(snap["CalismaAgirlik"]));
+                        if (snap['CalismaTarih'].toDate() == date) {
+                          if (double.parse(snap["CalismaAgirlik"]) > working_weight) {
+                            working_items.add(double.parse(snap["CalismaAgirlik"]));
+                          } else {
+                            working_items.add(working_weight);
+                          }
+                        } else {
+                          working_items.add(double.parse(snap["CalismaAgirlik"]));
+                        }
+
+                        date = snap['CalismaTarih'].toDate();
+                        working_weight = double.parse(snap["CalismaAgirlik"]);
+                        print(date);
                       }
                     }
                     print("Calisma");
@@ -247,12 +240,10 @@ class LineChartExState extends State<LineChartEx> {
                           children: <Widget>[
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
                                 child: Theme(
                                   data: Theme.of(context).copyWith(
-                                    canvasColor:
-                                        Color.fromARGB(255, 35, 31, 61),
+                                    canvasColor: Color.fromARGB(255, 35, 31, 61),
                                   ),
                                   child: DropdownButton<String>(
                                     isExpanded: true,
@@ -263,17 +254,13 @@ class LineChartExState extends State<LineChartEx> {
                                       size: 17,
                                     ),
                                     elevation: 16,
-                                    style: const TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 255, 255, 255)),
+                                    style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                                     onChanged: (String? newValue) {
                                       setState(() {
                                         dropdownValue = newValue!;
                                       });
                                     },
-                                    items: currencyItems
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
+                                    items: currencyItems.map<DropdownMenuItem<String>>((String value) {
                                       return DropdownMenuItem<String>(
                                         value: value,
                                         child: Text(value),
@@ -285,19 +272,14 @@ class LineChartExState extends State<LineChartEx> {
                             ),
                             Expanded(
                               child: TextField(
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255)),
-                                controller:
-                                    firstdate, //editing controller of this TextField
+                                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                                controller: firstdate, //editing controller of this TextField
                                 decoration: InputDecoration(
                                   enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 255, 255, 255)),
+                                    borderSide: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
                                   ),
                                   focusedBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Color(0xff4af699)),
+                                    borderSide: BorderSide(color: Color(0xff4af699)),
                                   ),
                                   icon: Icon(
                                     Icons.calendar_today,
@@ -305,36 +287,26 @@ class LineChartExState extends State<LineChartEx> {
                                     size: 20,
                                   ),
                                   labelText: "Başlangıç",
-                                  labelStyle: TextStyle(
-                                      color: Colors.white, fontSize: 15),
+                                  labelStyle: TextStyle(color: Colors.white, fontSize: 15),
                                 ),
-                                readOnly:
-                                    true, //set it true, so that user will not able to edit text
+                                readOnly: true, //set it true, so that user will not able to edit text
                                 onTap: () async {
+                                  print(DateTime(1900));
                                   DateTime? pickedDate = await showDatePicker(
                                       context: context,
-                                      initialDate: DateTime.now()
-                                          .subtract(const Duration(days: 1)),
-                                      firstDate: DateTime(
-                                          1900), //DateTime.now() - not to allow to choose before today.
-                                      lastDate: DateTime.now()
-                                          .subtract(const Duration(days: 1)));
+                                      initialDate: DateTime.now().subtract(const Duration(days: 30)),
+                                      firstDate: DateTime(1900), //DateTime.now() - not to allow to choose before today.
+                                      lastDate: DateTime.parse(endingdate.text).subtract(const Duration(days: 1)));
 
                                   if (pickedDate != null) {
-                                    print(
-                                        pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-                                    print(DateFormat('yyyy-MM-dd')
-                                        .format(DateTime.now()));
-                                    String formattedDate =
-                                        DateFormat('yyyy-MM-dd')
-                                            .format(pickedDate);
-                                    print(
-                                        formattedDate); //formatted date output using intl package =>  2021-03-16
+                                    print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                    print(DateFormat('yyyy-MM-dd').format(DateTime.now()));
+                                    String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                    print(formattedDate); //formatted date output using intl package =>  2021-03-16
                                     //you can implement different kind of Date Format here according to your requirement
 
                                     setState(() {
-                                      firstdate.text =
-                                          formattedDate; //set output date to TextField value.
+                                      firstdate.text = formattedDate; //set output date to TextField value.
                                     });
                                   } else {
                                     print("Tarih Seçilmedi !");
@@ -344,54 +316,40 @@ class LineChartExState extends State<LineChartEx> {
                             ),
                             Expanded(
                               child: TextField(
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255)),
-                                controller:
-                                    endingdate, //editing controller of this TextField
+                                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                                controller: endingdate, //editing controller of this TextField
                                 decoration: InputDecoration(
                                   enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 255, 255, 255)),
+                                    borderSide: BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
                                   ),
                                   focusedBorder: UnderlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Color(0xff4af699)),
+                                    borderSide: BorderSide(color: Color(0xff4af699)),
                                   ),
-                                  suffixIconColor:
-                                      Color.fromARGB(255, 255, 255, 255),
+                                  suffixIconColor: Color.fromARGB(255, 255, 255, 255),
                                   icon: Icon(
                                     Icons.calendar_today,
                                     color: Colors.white,
                                     size: 20,
                                   ),
                                   labelText: "Bitiş",
-                                  labelStyle: TextStyle(
-                                      color: Colors.white, fontSize: 15),
+                                  labelStyle: TextStyle(color: Colors.white, fontSize: 15),
                                 ),
-                                readOnly:
-                                    true, //set it true, so that user will not able to edit text
+                                readOnly: true, //set it true, so that user will not able to edit text
                                 onTap: () async {
                                   DateTime? pickedDate = await showDatePicker(
                                       context: context,
                                       initialDate: DateTime.now(),
-                                      firstDate: DateTime(
-                                          1900), //DateTime.now() - not to allow to choose before today.
-                                      lastDate: DateTime.now());
+                                      firstDate: DateTime.parse(firstdate.text).add(const Duration(days: 1)), //DateTime.now() - not to allow to choose before today.
+                                      lastDate: DateTime(2100));
 
                                   if (pickedDate != null) {
-                                    print(
-                                        pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-                                    String formattedDate =
-                                        DateFormat('yyyy-MM-dd')
-                                            .format(pickedDate);
-                                    print(
-                                        formattedDate); //formatted date output using intl package =>  2021-03-16
+                                    print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+                                    String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                    print(formattedDate); //formatted date output using intl package =>  2021-03-16
                                     //you can implement different kind of Date Format here according to your requirement
 
                                     setState(() {
-                                      endingdate.text =
-                                          formattedDate; //set output date to TextField value.
+                                      endingdate.text = formattedDate; //set output date to TextField value.
                                     });
                                   } else {
                                     print("Tarih Seçilmedi !");
@@ -402,44 +360,34 @@ class LineChartExState extends State<LineChartEx> {
                           ],
                         ),
                       ),
-                      Container(
-                          height: 420,
-                          //margin: EdgeInsets.all(10.0),
-                          decoration: BoxDecoration(
-                            //borderRadius: const BorderRadius.all(Radius.circular(18)),
-                            color: Color(0xff2c274c),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(
+                            height: 25,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              const SizedBox(
-                                height: 25,
-                              ),
-                              const SizedBox(
-                                height: 4,
-                              ),
-                              Text(
-                                dropdownValue,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 2,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(
-                                height: 25,
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 16.0),
-                                  child: LineChart(sampleData1(weight_items,
-                                      working_items, dropdownValue)),
-                                ),
-                              ),
-                            ],
-                          )),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Text(
+                            dropdownValue,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: 25,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10.0),
+                            child: LineChart(sampleData1(weight_items, working_items, dropdownValue)),
+                          ),
+                        ],
+                      ),
                       Row(
                         children: [
                           const SizedBox(

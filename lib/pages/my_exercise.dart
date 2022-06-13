@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:workoutlogger/pages/browser.dart';
 import 'package:workoutlogger/widgets/event.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -46,11 +47,13 @@ class _MyExerciseState extends State<MyExercise> {
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               late List<String> workoutItems = [];
               late List<String> workoutIDs = [];
+              late var workout_instructions = {};
               if (snapshot.data != null) {
                 for (int i = 0; i < snapshot.data!.docs.length; i++) {
                   DocumentSnapshot snap = snapshot.data!.docs[i];
                   workoutItems.add(snap["HareketIsim"]);
                   workoutIDs.add(snap.id);
+                  workout_instructions[snap["HareketIsim"]] = snap['HareketTarifLink'];
                 }
               }
 
@@ -203,6 +206,28 @@ class _MyExerciseState extends State<MyExercise> {
                                                                     );
                                                                   }).toList(),
                                                                 ),
+                                                                Container(
+                                                                  width: 30,
+                                                                  height: 40,
+                                                                  child: IconButton(
+                                                                    icon: const Icon(
+                                                                      Icons.info,
+                                                                      color: Colors.white,
+                                                                    ),
+                                                                    tooltip: '',
+                                                                    onPressed: () {
+                                                                      Navigator.pushReplacement(
+                                                                        context,
+                                                                        MaterialPageRoute(
+                                                                            builder: (context) => Browser(
+                                                                                  name: dropdownValue + ' Instructions',
+                                                                                  link: workout_instructions[dropdownValue],
+                                                                                ),
+                                                                            maintainState: false),
+                                                                      );
+                                                                    },
+                                                                  ),
+                                                                ),
                                                               ],
                                                             ),
                                                           ),
@@ -339,11 +364,13 @@ class _MyExerciseState extends State<MyExercise> {
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               late List<String> workoutItems = [];
               late List<String> workoutIDs = [];
+              late var workout_instructions = {};
               if (snapshot.data != null) {
                 for (int i = 0; i < snapshot.data!.docs.length; i++) {
                   DocumentSnapshot snap = snapshot.data!.docs[i];
                   workoutItems.add(snap["HareketIsim"]);
                   workoutIDs.add(snap.id);
+                  workout_instructions[snap["HareketIsim"]] = snap['HareketTarifLink'];
                 }
               }
               return FloatingActionButton.extended(
@@ -395,6 +422,28 @@ class _MyExerciseState extends State<MyExercise> {
                                                   child: Text(value),
                                                 );
                                               }).toList(),
+                                            ),
+                                            Container(
+                                              width: 30,
+                                              height: 40,
+                                              child: IconButton(
+                                                icon: const Icon(
+                                                  Icons.info,
+                                                  color: Colors.white,
+                                                ),
+                                                tooltip: '',
+                                                onPressed: () {
+                                                  Navigator.pushReplacement(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) => Browser(
+                                                              name: dropdownValue + ' Instructions',
+                                                              link: workout_instructions[dropdownValue],
+                                                            ),
+                                                        maintainState: false),
+                                                  );
+                                                },
+                                              ),
                                             ),
                                           ],
                                         ),

@@ -5,9 +5,11 @@ import 'package:workoutlogger/pages/login_screen.dart';
 import 'package:workoutlogger/pages/my_exercise.dart';
 import 'package:workoutlogger/pages/preferences.dart';
 import 'package:workoutlogger/pages/line_chart.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
